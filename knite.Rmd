@@ -1,0 +1,498 @@
+---
+title: "knit"
+author: "Siming Yan"
+date:   "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: spacelab
+    keep_md: true
+    toc: yes
+    toc_float: true
+    highlight: haddock
+    
+---
+
+<html>
+<style> 
+div.bgm { background-color:#e6fff0; border-radius: 7px; padding: 10px;} 
+.ans {
+  color: purple;
+  font-weight: bold;
+}
+#main { 
+    color: #2cb061; 
+}
+</style>
+
+<div class = "bgm">
+
+<ul id="main">
+
+
+```{r setup, include=FALSE}
+options(max.print="75")
+knitr::opts_chunk$set(
+	fig.width = 7,
+	message = FALSE,
+	warning = FALSE,
+	cache = TRUE,
+	comment = NA,
+	dpi = 300,
+	prompt = FALSE,
+	tidy = TRUE
+)
+# opts_knit$set(width=75)
+# knitr::opts_chunk$set()
+options(digits=5)
+options(scipen=5)
+knitr::opts_chunk$set(warning = F, message=F, eval = FALSE)
+```
+
+```{r, include=FALSE, eval = T}
+kbt <- function(...){
+  knitr::kable(..., format.args = list(big.mark = ',', scientific = F)) %>%
+    kableExtra::kable_styling(c("striped", "hover", "condensed"),
+                              full_width = F,
+                              position = "center",
+                              row_label_position = "c") %>%
+    row_spec(0, bold = T, color = "white", background = "#004d1f")
+}
+
+gpt <- function(...){
+  ggplot2::ggplot(...) + 
+    theme_minimal() +
+    theme(plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+          plot.subtitle = element_text(face = "italic", size = 12, hjust = 0.5), 
+          axis.text.x = element_text(angle = 0, hjust = 0.5))
+}
+
+stg <- function(...){
+  stargazer::stargazer(..., 
+                       type = "text",
+                       # style = "qje",
+                       # title = "daily_kwh ~ post:encouraged|customer_id + no.bill|0|customer_id",
+                       keep.stat = c("n", "ser"),
+                       digits = 5)
+}
+#
+
+
+
+
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+#--------------------------------------------
+
+library(parallel)
+library(doMC)
+numCores <- detectCores()
+registerDoMC(8)
+```
+
+## Data preview
+
+```{r cars, include =F, eval = T}
+data <- read.csv("./test_1.csv")
+# head(data) 
+
+names(data)[1] = "y"
+
+```
+
+```{r, echo=F, eval = T}
+library(kableExtra)
+library(tidyverse)
+library(mice)
+md.pattern(data)
+```
+  
+
+```{r, echo = F, eval = T}
+library(summarytools)
+dfSummary(data) %>% view
+descr(data) %>% data.frame()
+
+plotfunc = function(...){
+  gpt(data) + aes(x = ..., y = y) +
+    geom_point() + geom_line()
+}
+
+multiplot(plotfunc(X1), plotfunc(X2), plotfunc(X3),
+          plotfunc(X4), plotfunc(X5), plotfunc(X6),cols = 2)
+```
+
+![data-summary](./datasm.png)
+
+```{r, include =FALSE}
+library(knitr)
+library(readr)
+library(stringr)
+library(data.table)
+library(naniar)
+library(scales)
+
+library(trelliscopejs)
+library(caret)
+library(ranger)
+library(neuralnet)
+library(plm)
+library(gamlr)
+library(kernlab)
+library(glmnet)
+library(e1071)
+library(dplyr)
+library(gbm)
+library(causalTree)
+library(grf)
+```
+
+## sample splitting
+
+```{r}
+samplesize = 0.75 * nrow(data)
+set.seed(10)
+index = sample(nrow(data),size = samplesize)
+
+# creating training and test set
+train = data[index,]
+test = data[-index,]
+```
+
+## models:
+
+### PCA (7.0.12)
+
+```{r PCA}
+
+tuneGrid_pcr = data.frame(.ncomp = c(4:7))
+
+pcr_model <- train(
+  y ~ .,
+  tuneLength = 1,
+  data = train, 
+  method = "pcr",
+  tuneGrid = tuneGrid_pcr,
+  trControl = trainControl(
+    method = "cv", 
+    number = 10, 
+    verboseIter = FALSE
+  )
+)
+
+pcr_model
+```
+
+```{r, echo = FALSE}
+pcr_model
+#  6      0.053982  0.58495   0.039139
+```
+
+Principal Component Analysis 
+
+6202 samples
+   6 predictor
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 5582, 5582, 5581, 5581, 5582, 5582, ... 
+Resampling results across tuning parameters:
+
+  |ncomp  |RMSE      |Rsquared  |MAE    |
+  |---|---|---|---|
+  |4      |0.073826  |0.22390   |0.045716|
+  |5      |0.053943  |0.58542   |0.039186|
+  |6      |0.053982  |0.58495   |0.039139|
+  |7      |0.053982  |0.58495   |0.039139|
+
+RMSE was used to select the optimal model using the smallest value.
+The final value used for the model was ncomp = 5.
+
+### random forests
+
+```{r RF, comment = F}
+# From previous step
+tuneGrid <- data.frame(
+  .mtry = c(6)
+  # .splitrule = "variance",
+  # .min.node.size = 5
+)
+
+# Fit random forest: model
+rf_model <- train(
+  y ~ .,
+  tuneLength = 1,
+  data = train, 
+  method = "rf",
+  tuneGrid = tuneGrid,
+  trControl = trainControl(
+    method = "cv", 
+    number = 10, 
+    verboseIter = FALSE
+  )
+)
+```
+
+```{r, comment= F, echo = F}
+rf_model
+# 0.033427
+```
+Random Forest 
+
+6202 samples
+   6 predictor
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 5582, 5582, 5581, 5581, 5583, 5582, ... 
+Resampling results:
+
+| RMSE      | Rsquared   | MAE      |
+|-----------|------------|----------|
+| 0.033427  | 0.83731    | 0.018851 |
+
+Tuning parameter 'mtry' was held constant at a value of 6
+
+
+```{r RF_P, echo = F}
+pred_y <- predict(rf_model, newdata = test)
+final <- as.data.frame(cbind(pred_y,test$y))
+names(final) <- c("pred_y","real_y")
+prf <- ggplot(final, aes(x=pred_y,y=real_y)) + 
+  geom_point(alpha=0.65, col ="grey") + 
+  scale_x_continuous(limits=c(0,1)) +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_abline(intercept=0,slope=1) +
+  geom_smooth(se=0, smethod = "lm") +
+  coord_fixed(1) +
+  ggtitle("RF")
+```
+
+![RF](./rf.png)
+
+### SGB
+
+```{r SGB, comment = F, eval = F}
+# From previous step
+tuneGrid <- data.frame(
+  .n.trees = 9999,
+  .interaction.depth = c(8:16),
+  .shrinkage = 0.01,
+  .n.minobsinnode = 6
+)
+
+# Stochastic boosting
+sgb_model <- train(
+  y ~ .,
+  tuneLength = 1,
+  data = train, 
+  method = 'gbm',
+  tuneGrid = tuneGrid,
+  trControl = trainControl(
+    method = "cv", 
+    number = 10, 
+    verboseIter = FALSE
+  )
+)
+
+# Print model to console
+# sgb_model
+sgb_model$bestTune
+
+# sgb_sav_3_8_16 = sgb_model
+# sgb_sav_99_8_16 = sgb_model
+
+# png("Rplot%03d.png", width = 720)
+plot(sgb_model)
+# dev.off()
+```
+
+```{r, echo=F}
+pr_sgb <- predict(sgb_model, newdata = test)
+final_sgb <- as.data.frame(cbind(pr_sgb, test$y))
+names(final) <- c("pred_y","real_y")
+psgb <- ggplot(final, aes(x=pred_y,y=real_y)) + 
+  geom_point(alpha=0.65, col ="grey") + 
+  scale_x_continuous(limits=c(0,1)) +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_abline(intercept=0,slope=1) +
+  geom_smooth(se=0,method = "lm") +
+  coord_fixed(1)+
+  ggtitle("Stochastic Gradient Boosting")
+psgb
+```
+
+![SGB](./psgb.png)
+
+```{r, echo = F}
+sgb_model
+
+#0.034641	
+```
+Stochastic Gradient Boosting 
+
+6202 samples
+   6 predictor
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 5582, 5583, 5581, 5583, 5582, 5581, ... 
+Resampling results across tuning parameters:
+
+| interaction.depth | RMSE     | Rsquared | MAE      |
+|-------------------|----------|----------|----------|
+| 8                 | 0.035035 | 0.82248  | 0.022110 |
+| 9                 | 0.034897 | 0.82470  | 0.021999 |
+| 10                | 0.034808 | 0.82553  | 0.021858 |
+| 11                | 0.034893 | 0.82453  | 0.021825 |
+| 12                | 0.034671 | 0.82706  | 0.021695 |
+| 13                | 0.034647 | 0.82675  | 0.021723 |
+| 14                | 0.034820 | 0.82526  | 0.021681 |
+| 15                | 0.034715 | 0.82656  | 0.021644 |
+| 16                | 0.034641 | 0.82704  | 0.021599 |
+
+Tuning parameter 'n.trees' was held constant at a value of 9999
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.01
+
+Tuning parameter 'n.minobsinnode' was held constant at a value of 6
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 9999, interaction.depth
+ = 16, shrinkage = 0.01 and n.minobsinnode = 6.
+ 
+### NN
+
+```{r nn, eval = F}
+library(parallel)
+library(doMC)
+numCores <- detectCores()
+registerDoMC(8)
+
+
+tuneGrid <- data.frame(layer1 = 12, layer2 = 6, layer3 = 1)
+nn_model <- train(
+  y ~ .,
+  tuneLength = 1,
+  data = train, 
+  method = 'neuralnet',
+  tuneGrid = tuneGrid,
+  trControl = trainControl(
+    method = "cv", 
+    number = 10, 
+    verboseIter = FALSE
+  )
+)
+```
+
+```{r nn_out, eval=F}
+# compute(nn_model, data.frame(test))
+pred_nn <- predict(nn_model, newdata = test)
+final <- cbind(pred_nn, test$y) %>% data.frame()
+ 
+
+names(final) <- c("pred_y","real_y")
+
+pnn <- ggplot(final, aes(x=pred_y, y=real_y)) + 
+  geom_point(alpha=0.65, col ="grey") + 
+  scale_x_continuous(limits=c(0,1)) +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_abline(intercept=0,slope=1) +
+  geom_smooth(se=0, smethod = "lm") +
+  coord_fixed(1) +
+  ggtitle("Neural Network")
+
+pnn
+
+```
+
+![nn](./pnn.png)
+```{r, echo = F}
+nn_model
+```
+
+Neural Network 
+
+6202 samples
+   6 predictor
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 5582, 5582, 5581, 5581, 5583, 5582, ... 
+Resampling results:
+
+| RMSE     | Rsquared   | MAE      |
+|----------|------------|----------|
+| 0.05182  | 0.59264    | 0.036676 |
+
+Tuning parameter 'layer1' was held constant at a value of 18
+Tuning
+ parameter 'layer2' was held constant at a value of 6
+Tuning
+ parameter 'layer3' was held constant at a value of 1
+## results 
+
+```{r, eval = T, echo = F}
+results = data.frame(names = "RMSE",
+           PCA = "0.053982",
+           SGB = "0.034641",
+           RF = "0.033427",
+           NN = "0.05182")
+
+kbt(results)
+```
+
+
+<span style="font-size:16px;color:#8B30BB;">由数据概要部分（data summary）可以清晰看到因变量y是极度左偏的，主要分布在靠近0.9的范围内。因此可以推断X5, X4, X3, X2，X1依次所占weight递减。利用PCA, Random forests, Stochastic Gradient Boosting 和 Neural Network 对因变量进行预测，resampling method 10-fold-cross-validation。 最好的结果以上表所示：Random Forests & Stochastic Gradient Boosting 有相对较好的表现。其中，RF又有计算时间短的特点，所以为最佳模型，PCA & NN有相似的表现，但是PCA相对需要计算时间更短。综上所述，RF为最佳模型，其拟合准确度为0.83， 其RMSE为.033427。另外，X6 数据集为噪声集，对预测无正面影响，剔除后可以继续提高预测模型准确率。</span>
+
+<br />
+
+<span style="font-size:16px;color:#8B30BB;">Random Forest (剔除噪声集)<br>6202 samples<br>6 predictor<br>No pre-processing<br>Resampling: Cross-Validated (10 fold)<br>Summary of sample sizes: 5581, 5582, 5581, 5582, 5582, 5582, ...<br>Resampling results across tuning parameters:</span>
+
+| mtry | RMSE     | Rsquared | MAE      |
+|------|----------|----------|----------|
+| 1    | 0.035068 | 0.83149  | 0.021033 |
+| 2    | 0.033110 | 0.84305  | 0.018263 |
+| 3    | 0.033156 | 0.84235  | 0.017919 |
+| 4    | 0.032568 | 0.84385  | 0.017914 |
+| 5    | 0.032669 | 0.84255  | 0.018044 |
+| 6    | 0.032725 | 0.84180  | 0.018093 |
+| 7    | 0.032781 | 0.84169  | 0.018109 |
+| 8    | 0.032791 | 0.84130  | 0.018090 |
+| 16   | 0.034641 | 0.82704  | 0.021599 |
+
+<span style="font-size:16px;color:#8B30BB;">RMSE was used to select the optimal model using the smallest value.
+The final value used for the model was mtry = 4. 最好的结果为拟合度0.84385，RMSE = 0.032568。</span>
