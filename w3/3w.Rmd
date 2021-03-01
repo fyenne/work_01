@@ -1,0 +1,182 @@
+---
+title: '3'
+author: "Siming Yan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+---
+
+<html>
+<style> 
+div.bgm { background-color:#e6fff0; border-radius: 7px; padding: 10px;} 
+.ans {
+  color: purple;
+  font-weight: bold;
+}
+main { 
+    color: #2cb061; 
+}
+</style>
+ 
+
+<div class = "bgm">
+
+<ul id="main">
+
+```{r setup, include=FALSE}
+options(max.print="75")
+knitr::opts_chunk$set(
+	fig.width = 7,
+	message = FALSE,
+	warning = FALSE,
+	cache = TRUE,
+	comment = NA,
+	dpi = 300,
+	prompt = FALSE,
+	tidy = TRUE
+)
+ 
+options(digits=5)
+options(scipen=5)
+knitr::opts_chunk$set(warning = F, message=F)
+```
+
+```{r, include=FALSE}
+kbt <- function(...){
+  knitr::kable(..., format.args = list(big.mark = ',', scientific = F)) %>%
+    kableExtra::kable_styling(c("striped", "hover", "condensed"),
+                              full_width = F,
+                              position = "center",
+                              row_label_position = "c") 
+    # row_spec(0, bold = T, color = "white", background = "#004d1f")
+}
+
+gpt <- function(...){
+  ggplot2::ggplot(...) + 
+    theme_minimal() +
+    theme(plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+          plot.subtitle = element_text(face = "italic", size = 12, hjust = 0.5), 
+          axis.text.x = element_text(angle = 0, hjust = 0.5))
+}
+
+```
+
+```{r, include = F}
+library(readxl)
+library(lubridate)
+library(tidyverse)
+```
+
+
+```{r, include = F}
+
+data = read_xlsx("./一面数据-数据分析师-笔试题 D.xlsx")
+```
+
+```{r}
+data$time = data$month %>% ymd()
+data$year = year(data$time)
+data$month = month(data$time)
+
+ans1 = data %>% group_by(month, year, product_id) %>% summarise(sum(sales))
+ans1 = merge(ans1, data, by = c("product_id", "month", "year"))
+ans1$product_id = ans1$product_id %>% as.factor()
+```
+
+## ans 2）	2019年的top 10 product（按照sales倒序）
+
+```{r}
+ans1_out = ans1 %>% filter(year == 2019) %>% arrange(desc(sales)) %>% slice(1:10)
+ans1_out %>% kbt
+```
+
+## ans 3）	2019年增长率最高的top 10 product
+
+```{r}
+# check `product_id` difference in 2019 and 2018
+setdiff((ans1 %>% filter(year == 2019))$product_id,
+        (ans1 %>% filter(year == 2018))$product_id)
+```
+
+<span style="font-size:16px;color:#8B30BB;">*Ans:*0 product loss, 2 new product in 2019. </span>
+
+```{r}
+# ans1$year %>% unique
+rm_list = which((ans1 %>% filter(year == 2019))$product_id %in%
+        c("1638995159-07-26","1668330204-02-03"))
+data_19 = (ans1 %>% filter(year == 2019))[-rm_list, ]
+data_18 = ans1 %>% filter(year == 2018)
+#--------------------------------------------
+# cleaned
+setdiff(data_19$product_id,
+        data_18$product_id)
+data_19$year_18 = "F"
+data_18$year_18 = "T"
+drop_col = c("brand_id", "time", "year", "sum(sales)", "year_18")
+data_19 = data_19[, !names(data_19) %in% drop_col]
+data_18 = data_18[, !names(data_18) %in% drop_col]
+
+
+data_cleaned = merge(data_18, data_19, all = T, by = 
+                       c("product_id","month"),
+                     suffixes = c("_18", "_19"))
+```
+
+```{r}
+data_cleaned$yoy = data_cleaned$sales_19 / data_cleaned$sales_18 -1
+
+ans2_out = arrange(data_cleaned, desc(yoy)) %>% slice(1:10)
+```
+
+## ans 4）	每个月的卖得最好的top 1 product 
+
+```{r}
+ans3_out = data %>%
+    group_by(year, month) %>%
+    slice(which.max(sales))
+```
+
+
+## ans 5)    2019年占领头部80% sales的 product_id是哪一些？
+
+```{r}
+data_19 = data_19 %>% arrange(desc(sales))
+sum(data_19$sales)*.8 #[1] 131634164
+for (i in 1:100){
+  if (
+    (data_19 %>% slice(1: i))$sales %>% sum() > sum(data_19$sales)*.8
+  ){
+    print(i)
+    break
+    }
+}
+
+
+# (data_19 %>% slice(1:93))$sales %>% sum # 132179640
+ans4_out = unique((data_19 %>% slice(1:93))$product_id) %>% list
+```
+
+
+## ans 6) 假设有两张表a和b，请求出表a与表b的差集（即只存在于表a中，不存在于表b的数据），2表共有字段为product_id，且product_id唯一。
+
+
+"SELECT * FROM a EXCEPT SELECT * FROM b"
+
+
+
+```{r}
+a = data.frame(c1 = c(1:5), c2 = letters[1:5])
+b = data.frame(c1 = c(3:7), c2 = letters[3:7])
+setdiff(a, b)
+anti_join(a,b)
+```
+
+
+```{r}
+
+ans1_out$product_id = ans1_out$product_id %>% as.character()
+ans1_out
+write.csv(ans1_out, "./ou1.csv", fileEncoding = "UTF-8")
+```
+
