@@ -230,3 +230,68 @@ sample(15)
 4/5 * 3/4 * 2/3 * 1/2 + 3/5 * 2/3 * 2/3 * 1/2 + 3/5 * 2/3 * 2/3 * 1/2
 ```
 
+```{r}
+
+ggplot(myresult) + aes(x = variable, y = value) +
+  geom_boxplot()
+```
+
+```{r}
+result = read.csv("/Users/fyenne/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/14c3e6c62803ffa7aaf3d29aab8b25b9/Message/MessageTemp/ecb5b8b70180f57d59cdc0e490d90899/File/r11.csv", header = F)
+```
+
+```{r}
+myresult
+library(tidyverse)
+library(reshape2)
+result
+result[1,][1,] %>% unname() %>% as.numeric()
+result[1,] %>%as.numeric() %>% unique()
+myresult <- data.frame(f = c(1:100), s = c(1:100)) %>% data.frame()
+myresult$f = result[1,] %>% as.numeric()
+myresult$s = result[2,] %>% as.numeric()
+myresult = myresult %>% melt
+```
+
+```{r}
+library(tidyverse)
+library(reshape2)
+
+myresult$f = result[1,] %>% as.numeric()
+myresult$s = result[2,] %>% as.numeric()
+myresult = myresult %>% melt
+
+(ggplot(myresult) + aes(variable, y = value, fill = variable) + 
+  geom_boxplot() ) 
+```
+
+```{r}
+set.seed(10)
+data = rnorm(50, 15)
+data2 = rnorm(50, 50)
+df = append(data,data2)
+df
+
+myresult$value = df
+myresult$variable = "f"
+
+m2 = myresult
+m2$variable = "s"
+data2 = rnorm(100, 60)
+m2$value = data2
+
+myresult = rbind(myresult, m2)
+```
+
+```{r}
+library(ggplot2)
+ 
+# The mtcars dataset is natively available
+# head(mtcars)
+ 
+# A really basic boxplot.
+ggplot(mtcars, aes(x=as.factor(cyl), y=mpg)) + 
+    geom_boxplot(fill="slateblue", alpha=0.2) + 
+    xlab("cyl")
+```
+
