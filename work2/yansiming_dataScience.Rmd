@@ -295,3 +295,20 @@ ggplot(mtcars, aes(x=as.factor(cyl), y=mpg)) +
     xlab("cyl")
 ```
 
+```{r}
+ 
+aa = strsplit(readline(), " ") 
+c(which.max(as.numeric(aa %>% unlist)), max(as.numeric(aa %>% unlist)))
+```
+
+```{r}
+aa = strsplit(readline(), " ") 
+c(which.max(as.numeric(unlist(aa ))) - 1)
+```
+
+```{r}
+x = 350
+y = 830 -x
+c(x*.94 + y * 1.05 )
+```
+
