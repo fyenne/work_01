@@ -425,5 +425,45 @@ c(mub, mean(df$Price[2313]))
 df$Price[2313]
 ```
 
+```{r}
+df = read.csv("./ch6problem14.csv")
+# scan(file.choose(""))
+df
+acf(df)
+pacf(df)
+df[,c(2:4)]
+chisq.test(df[,c(4)])
+```
 
+
+```{r}
+library(fitdistrplus)
+plotdist(df, discrete = T)
+df %>% ggplot(aes(x = Period, y = N, fill = Day)) + geom_col()
+
+
+plot(df %>% dplyr::select(c("Period","N")))
+fp = fitdist(df$N, "pois")
+summary(fp)
+
+acf(df$N)
+```
+
+```{r}
+fp = fitdist(df$N, "pois")
+summary(fp)
+gofstat(fp) 
+```
+
+```{r}
+xta = xtabs(~N+ as.factor(Day), data = df) 
+chisq.test(xta)
+```
+
+```{r}
+# d.ergo <- data.frame(Type = paste0("T", rep(1:4, 9*4)),
+#                       Subj = gl(9, 4, 36*4))
+# d.ergo
+# xtabs(~ Type + Subj, data = d.ergo)
+```
 

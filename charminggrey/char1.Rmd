@@ -1,0 +1,180 @@
+---
+title: "Assign1"
+author: "abcd"
+date:   "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    theme: cerulean
+    keep_md: true
+    toc: yes
+    toc_float: true
+    highlight: haddock
+---
+
+```{r, include = F}
+library(stargazer)
+library(car)
+library(lmtest)
+library(tidyverse)
+```
+
+
+```{r, include = F}
+df = read.csv("assign1.csv")
+```
+
+# Q1
+## a) [6 marks] What is the interpretation of the population parameters βK,βL, and βM?
+## b) [2 marks] Estimate the econometric model (2) in R using the method of Ordi- nary Least Squares (OLS) and report the results. Do the signs of your estimated coefficients turn out as you expect? Why or why not?
+
+```{r}
+reg1 = lm(lnroutput ~ lnrmaterials + lnlabour + lnrcapital, data = df)
+summary(reg1)
+```
+
+## c
+
+### c-i) Constant returns to scale implies that a doubling of all factor inputs (K, L,and M) exactly doubles production. In terms of the model (2), this imposes the restriction (βK + βL + βM ) = 1
+
+```{r}
+linearHypothesis(reg1, "lnrmaterials + lnlabour + lnrcapital = 1")
+qf(.95, 3, 1935)
+```
+
+### c-ii) [6 marks] Without using the car package in R, test the hypothesis of constant returns to scale, for model (2), at a 5% level of significance using an F-test.
+
+$$
+F =   {{(RSS_R −RSS_{UR})/M} \over {RSS_{UR} /(N − K − 1)}} ∼ F (M ,\  N − K − 1)
+$$
+
+```{r}
+df$y_k = df$lnroutput - df$lnrcapital
+df$l_k = df$lnlabour - df$lnrcapital
+df$m_k = df$lnrmaterials - df$lnrcapital
+reg2 = lm(y_k ~ l_k + m_k, data = df)
+```
+
+
+```{r}
+summary(reg1)
+# 0.4524  on 1936 degrees of freedom # 3 and 1936 DF
+summary(reg2) 
+# 0.4642 on 1937 degrees of freedom #  2 and 1937 DF
+n = 1937; k =2
+F_value_q1 = ((0.4642 - 0.4524)/k) / ((0.4524)/(n-k-1))
+F_value_q1
+
+qf(.95, 2, 1937)
+
+# 
+# 0.9368/2 / ((1-0.9368)/(n-k-1))
+```
+
+ 
+H0: the two models are different.
+F_value = `r F_value_q1`, which is larger than `r qf(.95, 3, 1936)`, hence we reject H0. The two models are not different, which implies that ($\beta_K$ + $\beta_L$ + $\beta_M$) = 1.
+
+### c-iii) [8 marks] Without using the car package in R, test the hypothesis of constant returns to scale, for model (2), at a 5% level of significance using a t-test.
+
+$$VAR(aX+bY +cZ)=a^2 VAR(X)+b^2 VAR(Y)+c^2VAR(Z) +2ab COV(X,Y)+2bc COV(Y,Z)+2ac COV(X,Z)$$
+
+```{r}
+# klm
+vcov(reg1)
+upper = (reg1$coefficients[2] + reg1$coefficients[3] + reg1$coefficients[4] - 1)
+lower = vcov(reg1)[2,2] + vcov(reg1)[3,3] + vcov(reg1)[4,4] + 
+  2*vcov(reg1)[2,3] + 2*vcov(reg1)[2,4] + 2*vcov(reg1)[3,4]
+cat("t-value is: ",upper/sqrt(lower))
+```
+
+
+## d) [6 marks] Test the hypothesis that model (2) is correctly specified using the Ram- sey RESET test, at the 5% level, using both the squares and the cubes of the fitted values. What is your conclusion?
+
+```{r}
+resettest(reg1, power=2:3, type="fitted")
+```
+
+## e) Suppose this alternative model has been estimated using the data in assign1.csv and a value of R2 = 0.8749 was obtained. Consider the following statement: “Given the sample of data, the econometric model (2) is preferred to the alternative econometric model (3) because it has a larger R2.” Do you agree with this statement. Why or why not? 
+
+---
+
+# Question 2 [Total 40 marks] Consider the following extended version of model (1):
+
+## question 2 a)
+```{r}
+assign1 <- read.csv("assign1.csv")
+meanlnrcapital <- mean(assign1$lnrcapital)
+meanlnrlabour  <- mean(assign1$lnlabour)
+meanlnrmatrerials <- mean(assign1$lnrmaterials)
+meanout <- mean(assign1$lnroutput)
+print(meanlnrcapital)
+print(meanlnrlabour)
+print(meanlnrmatrerials)
+
+```
+
+
+```{r}
+# 
+# assign1
+reg4 = lm(lnroutput ~ . + I(lnrcapital^2) + I(lnlabour^2) + I(lnrmaterials^2) +
+            lnrcapital*lnlabour + lnlabour*lnrmaterials + lnrmaterials*lnrcapital -
+            sector1 - firm, data =  assign1)
+summary(reg4)
+```
+
+## question 2 b)your estimates for model (4) calculate the following estimated elasticities, evaluated at the sample means:
+
+```{r}
+# reg4 is log-log regression
+reg4$coefficients['lnrcapital']
+reg4$coefficients['lnlabour']
+reg4$coefficients['lnrmaterials']
+```
+
+
+## question 2 c)
+
+# the real level of output is increasing over time.
+
+```{r}
+summary(reg4)[2]
+```
+
+
+#--------------------------------------------
+# question 2 d)
+
+```{r}
+resettest(reg4, power=2:3, type="fitted")
+```
+
+#--------------------------------------------
+# question 2 e)
+
+```{r}
+
+```
+
+
+#--------------------------------------------
+# question 2 f)
+
+```{r}
+linearHypothesis(reg4, "lnrmaterials + lnlabour + lnrcapital = 1")
+linearHypothesis(reg4, "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 1")
+# ....
+# reg4$coefficients
+
+```
+
+#--------------------------------------------
+# question 2 g)
+
+```{r}
+linearHypothesis(reg4, "sector2 + sector3 +
+                 sector4 + sector5 + sector6 + sector7 + sector8 = 0")
+# F = 4.1249
+qf(.95, 7, length(assign1))
+```
+ 

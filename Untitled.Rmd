@@ -1,0 +1,50 @@
+---
+title: "Untitled"
+author: "Siming Yan"
+date: "3/10/2021"
+output: html_document
+---
+
+ 
+```{r, include=F}
+library(tidyverse)
+df = read.csv("./ch6problem14.csv")
+# scan(file.choose(""))
+# df
+# acf(df)
+# pacf(df)
+# # df[,c(2:4)]
+# chisq.test(df[,c(4)])
+# ```
+# 
+# 
+# ```{r}
+# library(fitdistrplus)
+# plotdist(df$N, discrete = T)
+# df %>% ggplot(aes(x = Period, y = N, fill = Day)) + geom_col()
+# 
+# 
+# plot(df %>% dplyr::select(c("Period","N")))
+# fp = fitdist(df$N, "pois")
+# summary(fp)
+# acf(df$N)
+# ```
+# 
+# ```{r}
+# fp = fitdist(df$N, "pois")
+# summary(fp)
+# gofstat(fp) 
+# ```
+# 
+# ```{r}
+# xta = xtabs(~N+ as.factor(Day), data = df) 
+# chisq.test(xta)
+# ```
+```
+
+```{r}
+df[1:10,] %>% ggplot(aes(x = Period, y = N)) + 
+  geom_col() + 
+  geom_text(aes(x = Period, y = N, label = N), vjust = -1)
+```
+
