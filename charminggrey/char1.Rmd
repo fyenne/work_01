@@ -81,10 +81,14 @@ $$VAR(aX+bY +cZ)=a^2 VAR(X)+b^2 VAR(Y)+c^2VAR(Z) +2ab COV(X,Y)+2bc COV(Y,Z)+2ac 
 ```{r}
 # klm
 vcov(reg1)
+reg1; reg1$coefficients[2]
 upper = (reg1$coefficients[2] + reg1$coefficients[3] + reg1$coefficients[4] - 1)
 lower = vcov(reg1)[2,2] + vcov(reg1)[3,3] + vcov(reg1)[4,4] + 
-  2*vcov(reg1)[2,3] + 2*vcov(reg1)[2,4] + 2*vcov(reg1)[3,4]
-cat("t-value is: ",upper/sqrt(lower))
+        2*vcov(reg1)[2,3] + 2*vcov(reg1)[2,4] + 2*vcov(reg1)[3,4]
+upper/sqrt(lower) 
+
+# cat("t-value is: ", )
+# 10.15943^2 # [1] 103.214
 ```
 
 
@@ -118,8 +122,8 @@ print(meanlnrmatrerials)
 # 
 # assign1
 reg4 = lm(lnroutput ~ . + I(lnrcapital^2) + I(lnlabour^2) + I(lnrmaterials^2) +
-            lnrcapital*lnlabour + lnlabour*lnrmaterials + lnrmaterials*lnrcapital -
-            sector1 - firm, data =  assign1)
+            lnrcapital:lnlabour + lnlabour:lnrmaterials + lnrmaterials:lnrcapital -
+            sector1 - firm, data = assign1)
 summary(reg4)
 ```
 
@@ -132,13 +136,17 @@ reg4$coefficients['lnlabour']
 reg4$coefficients['lnrmaterials']
 ```
 
+$$
+elasticity = {\partial output\over}
+$$
 
 ## question 2 c)
 
 # the real level of output is increasing over time.
 
 ```{r}
-summary(reg4)[2]
+summary(reg4)
+linearHypothesis(reg4, "year = 0")
 ```
 
 
@@ -162,10 +170,15 @@ resettest(reg4, power=2:3, type="fitted")
 
 ```{r}
 linearHypothesis(reg4, "lnrmaterials + lnlabour + lnrcapital = 1")
-linearHypothesis(reg4, "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 1")
+
+linearHypothesis(reg4, "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 0")
+linearHypothesis(reg4, "2*I(lnlabour^2)   + lnrcapital:lnlabour + lnrmaterials:lnlabour   = 0")
+linearHypothesis(reg4, "2*I(lnrmaterials^2) + lnrmaterials:lnrcapital + lnrmaterials:lnlabour = 0")
+
+summary(reg4)
 # ....
 # reg4$coefficients
-
+ 
 ```
 
 #--------------------------------------------
