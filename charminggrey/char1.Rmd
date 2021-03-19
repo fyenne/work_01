@@ -59,6 +59,7 @@ reg2 = lm(y_k ~ l_k + m_k, data = df)
 summary(reg1)
 # 0.4524  on 1936 degrees of freedom # 3 and 1936 DF
 summary(reg2) 
+# reg2
 # 0.4642 on 1937 degrees of freedom #  2 and 1937 DF
 n = 1937; k =2
 F_value_q1 = ((0.4642 - 0.4524)/k) / ((0.4524)/(n-k-1))
@@ -161,7 +162,9 @@ resettest(reg4, power=2:3, type="fitted")
 # question 2 e)
 
 ```{r}
-
+# reg4$coefficients
+# reg1$coefficients['lnrcapital']
+linearHypothesis(reg4, c('lnlabour = 0.2624344 ', 'lnrmaterials = 0.7461395', 'lnrcapital = 0.0792811'))
 ```
 
 
@@ -178,7 +181,10 @@ linearHypothesis(reg4, "2*I(lnrmaterials^2) + lnrmaterials:lnrcapital + lnrmater
 summary(reg4)
 # ....
 # reg4$coefficients
- 
+linearHypothesis(reg4, c("lnrmaterials + lnlabour + lnrcapital = 1",
+                         "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 0",
+                         "2*I(lnlabour^2)   + lnrcapital:lnlabour + lnrmaterials:lnlabour   = 0",
+                         "2*I(lnrmaterials^2) + lnrmaterials:lnrcapital + lnrmaterials:lnlabour = 0"))
 ```
 
 #--------------------------------------------
