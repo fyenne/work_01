@@ -137,9 +137,6 @@ reg4$coefficients['lnlabour']
 reg4$coefficients['lnrmaterials']
 ```
 
-$$
-elasticity = {\partial output\over}
-$$
 
 ## question 2 c)
 
@@ -149,6 +146,7 @@ $$
 summary(reg4)
 linearHypothesis(reg4, "year = 0")
 ```
+
 
 
 #--------------------------------------------
@@ -162,8 +160,8 @@ resettest(reg4, power=2:3, type="fitted")
 # question 2 e)
 
 ```{r}
-# reg4$coefficients
-# reg1$coefficients['lnrcapital']
+reg4
+reg1$coefficients['lnlabour']
 linearHypothesis(reg4, c('lnlabour = 0.2624344 ', 'lnrmaterials = 0.7461395', 'lnrcapital = 0.0792811'))
 ```
 
@@ -172,11 +170,10 @@ linearHypothesis(reg4, c('lnlabour = 0.2624344 ', 'lnrmaterials = 0.7461395', 'l
 # question 2 f)
 
 ```{r}
-linearHypothesis(reg4, "lnrmaterials + lnlabour + lnrcapital = 1")
-
-linearHypothesis(reg4, "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 0")
-linearHypothesis(reg4, "2*I(lnlabour^2)   + lnrcapital:lnlabour + lnrmaterials:lnlabour   = 0")
-linearHypothesis(reg4, "2*I(lnrmaterials^2) + lnrmaterials:lnrcapital + lnrmaterials:lnlabour = 0")
+# linearHypothesis(reg4, "lnrmaterials + lnlabour + lnrcapital = 1")
+# linearHypothesis(reg4, "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 0")
+# linearHypothesis(reg4, "2*I(lnlabour^2)   + lnrcapital:lnlabour + lnrmaterials:lnlabour   = 0")
+# linearHypothesis(reg4, "2*I(lnrmaterials^2) + lnrmaterials:lnrcapital + lnrmaterials:lnlabour = 0")
 
 summary(reg4)
 # ....
