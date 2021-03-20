@@ -1,0 +1,99 @@
+---
+title: "Title of Project"
+author: "Student SID"
+subtitle: "Project 1"
+date: "University of Sydney | DATA1001 | January 2021"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    self_contained: yes
+    theme: flatly
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+---
+
+<br>
+
+# Executive Summary
+
+<br>
+
+# Full Report
+
+## Initial Data Analysis (IDA)
+
+The Newtown property prices dataset comes from data scraped by [domain](www.domain.com.au) in June 2017. 
+
+```{r}
+# Read in the Newtown data
+property = read.csv("http://www.maths.usyd.edu.au/u/UG/JM/DATA1001/r/current/data/NewtownJune2017.csv")
+str(property)
+
+
+## Quick snapshot
+dim(property)
+str(property)
+```
+
+<br>
+
+## Research Questions (given)
+
+### What was the average price of a property?
+
+```{r, results = "hide"}
+# all properties
+mean(property$Sold)
+median(property$Sold)
+sd(property$Sold)
+IQR(property$Sold)
+
+# Just 2 bedroom properties
+mean(property$Sold[property$Bedrooms=="2"])
+median(property$Sold[property$Bedrooms=="2"])
+sd(property$Sold[property$Bedrooms=="2"])
+IQR(property$Sold[property$Bedrooms=="2"])
+```
+
+### Does the amount of carspots affect the price?
+
+```{r, results = "hide"}
+mean(property$Sold[property$Carspots=="0"])
+mean(property$Sold[property$Carspots=="1"])
+mean(property$Sold[property$Carspots=="2"])
+```
+
+###  What were the cheapest properties?
+
+First, we could just sort by the sold price.
+
+```{r}
+# Sort all prices
+sold = property$Sold
+sort(sold)
+```
+
+It would nice to list the details about the cheapest properties. Try the following code.
+
+```{r}
+attach(property)   # The database is attached to the R search path, so variables in the database can be accessed by simply giving their names.
+head(property[order(Sold), ][c(1, 6, 7)], 10)
+```
+
+### Assuming commission fees are around 2%, which agency earnt the most over that period? 
+
+```{r}
+# Example of extracting Agent sales
+sum(property$Sold[property$Agent=="RayWhite"])*0.02
+```
+
+
+## Research Question (own)
+
+
+
+
+

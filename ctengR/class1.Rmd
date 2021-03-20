@@ -1,0 +1,29 @@
+---
+title: "Class1"
+author: "abcd"
+date:   "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    theme: cerulean
+    keep_md: true
+    toc: yes
+    toc_float: true
+    highlight: haddock
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+mtcars
+iris
+```
+```{r}
+library(tidyverse)
+library(ggplot2)
+ggplot(mtcars) + aes(x)
+```
+

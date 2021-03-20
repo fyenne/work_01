@@ -176,7 +176,7 @@ linearHypothesis(reg4, c('lnlabour = 0.2624344 ', 'lnrmaterials = 0.7461395', 'l
 # linearHypothesis(reg4, "2*I(lnrmaterials^2) + lnrmaterials:lnrcapital + lnrmaterials:lnlabour = 0")
 
 summary(reg4)
-# ....
+# .... %>% %>% 
 # reg4$coefficients
 linearHypothesis(reg4, c("lnrmaterials + lnlabour + lnrcapital = 1",
                          "2*I(lnrcapital^2) + lnrcapital:lnlabour + lnrmaterials:lnrcapital = 0",
