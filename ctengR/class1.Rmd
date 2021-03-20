@@ -22,8 +22,13 @@ mtcars
 iris
 ```
 ```{r}
-library(tidyverse)
-library(ggplot2)
-ggplot(mtcars) + aes(x)
+mtcars
+ggplot(mtcars) + aes(x = cyl, y = mpg, group = cyl) +
+  geom_boxplot()
+
+
+ggplot(mtcars) + aes(x = cyl, weight = mpg) +
+  geom_bar()
+
 ```
 
