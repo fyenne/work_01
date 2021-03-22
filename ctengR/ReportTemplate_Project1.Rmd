@@ -28,10 +28,16 @@ output:
 The Newtown property prices dataset comes from data scraped by [domain](www.domain.com.au) in June 2017. 
 
 ```{r}
+getwd() # get working directory()
 # Read in the Newtown data
-property = read.csv("http://www.maths.usyd.edu.au/u/UG/JM/DATA1001/r/current/data/NewtownJune2017.csv")
-str(property)
 
+# . == getwd()
+# /Users/fyenne/Downloads/booooks/semester5/work_1/ctengR/   
+# data/NewtownJune2017.csv
+property = read.csv("/Users/fyenne/Desktop/R/NewtownJune2017.csv")
+# "./data/NewtownJune2017.csv"
+property
+str(property)
 
 ## Quick snapshot
 dim(property)
@@ -58,12 +64,15 @@ sd(property$Sold[property$Bedrooms=="2"])
 IQR(property$Sold[property$Bedrooms=="2"])
 ```
 
+`r mean(property$Sold)`
+
 ### Does the amount of carspots affect the price?
 
 ```{r, results = "hide"}
 mean(property$Sold[property$Carspots=="0"])
 mean(property$Sold[property$Carspots=="1"])
 mean(property$Sold[property$Carspots=="2"])
+
 ```
 
 ###  What were the cheapest properties?
@@ -74,13 +83,16 @@ First, we could just sort by the sold price.
 # Sort all prices
 sold = property$Sold
 sort(sold)
+# min(property$Sold)
 ```
 
 It would nice to list the details about the cheapest properties. Try the following code.
 
 ```{r}
-attach(property)   # The database is attached to the R search path, so variables in the database can be accessed by simply giving their names.
+attach(property)   
+# The database is attached to the R search path, so variables in the database can be accessed by simply giving their names.
 head(property[order(Sold), ][c(1, 6, 7)], 10)
+detach(property)
 ```
 
 ### Assuming commission fees are around 2%, which agency earnt the most over that period? 
@@ -96,4 +108,9 @@ sum(property$Sold[property$Agent=="RayWhite"])*0.02
 
 
 
+
+```{r}
+q4 = group_by(property, Agent) %>% summarise(sum(Sold))
+which(question4$`sum(Sold)` == max(question4$`sum(Sold)`))
+```
 
