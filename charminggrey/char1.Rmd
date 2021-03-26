@@ -194,3 +194,40 @@ linearHypothesis(reg4, "sector2 + sector3 +
 qf(.95, 7, length(assign1))
 ```
  
+ 
+```{r}
+
+a = strsplit(a, " ")[[1]]
+rev(a);a
+```
+
+```{r}
+
+b = "3 5 7 2"
+b[-1]
+# b = "1 1 1 1 1 1"
+# b = "1 5 2 6 8 9 5 4"
+b = strsplit(b, " ")[[1]]
+b = rev(as.numeric(b))
+b[order(b)]
+b[order(b, decreasing = T)]
+b
+if (b == b[order(b, decreasing = T)]){
+  cat(0)
+  }else{
+    for (i in 1:length(b)){
+      if (b[1] > b[2]){
+        cat(length(b)[1] - 1)
+        break
+        } else if (isTRUE(b[i] > b[i-1] & b[i] > b[i+1]) == T){
+          cat((length(b) - which(b == b[i]))[1])
+          break
+}}}
+
+for(i in 1:4){
+  if (isTRUE(b[i] == "5" | b[i] == "7") == T){
+  print(i)
+}
+};b
+```
+
