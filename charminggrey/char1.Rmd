@@ -231,3 +231,49 @@ for(i in 1:4){
 };b
 ```
 
+```{r}
+multi_return <- function() {
+my_list <- list("color" = "red", "size" = 20, "shape" = "round")
+# return(my_list) 
+}
+
+multi_return()$shape
+```
+
+```{r}
+f <- function(f_x){
+  g <- function(g_x){
+    print("Inside g")
+    print(environment())
+    print(ls())
+}
+  g(5)
+  print("Inside f")
+  print(environment())
+  print(ls())
+}
+
+
+15 %% 2 # 取余数
+15 %/% 2 # 取整除
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+'8 责怪别人制造麻烦'
+'18 感到大多数人都不可信任'
+'43 感到有人在监视您、谈论您'
+'68 有一些别人没有的想法'
+'76 别人对您的成绩没有做出恰当的评价'
+'83 感到别人想占您的便宜'
