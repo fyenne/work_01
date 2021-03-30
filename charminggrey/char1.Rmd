@@ -290,15 +290,53 @@ x
 
 
 
+```{r}
+a = as.numeric(strsplit("25, 12, 4, 58, 7, 20, 4, 70", ",")[[1]])
+a
+sort(a, decreasing = F)
+
+t = {};for (i in 1:10){
+  t =  sum(cumprod(1:i))
+};t
+
+sum(cumprod(1:3))
 
 
+1 + 1*2 + 1*2*3 
+1 + 1*2 + 1*2*3 + 1*2*3*4
+```
+
+```{r}
+
+sum(1:100)/10
+a = (seq(1, 100, 11))
+df = matrix(1,11,10)
+df[1,] = rep(c(1, 0), 5)
+df[2,] = a
+df_even = df[, df[1, ] == 0]
+df_oddd = df[, df[1, ] == 1]
+
+for (i in 3:11){
+  df_even[i, ] = df_even[i-1, ]-1
+};df_even
+
+for (i in 3:11){
+  df_oddd[i, ] = df_oddd[i-1, ]+1
+};df_oddd
+
+df_2 = cbind(df_even, df_oddd)
+df_2 = df_2[,order(df_2[2, ])]
+df_2 = data.frame(df_2[2:11, ])
+df_2
+
+# 1+99+3+97+5+95+7+93+9+91
+100+2+98+4+96+6+94+8+92+10
+```
+
+```{r}
+df = matrix(1:100,10,10)
+t(df)
 
 
+```
 
- 
-'8 责怪别人制造麻烦'
-'18 感到大多数人都不可信任'
-'43 感到有人在监视您、谈论您'
-'68 有一些别人没有的想法'
-'76 别人对您的成绩没有做出恰当的评价'
-'83 感到别人想占您的便宜'
