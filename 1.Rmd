@@ -467,3 +467,8 @@ chisq.test(xta)
 # xtabs(~ Type + Subj, data = d.ergo)
 ```
 
+```{python}
+import pandas
+1+1
+```
+
